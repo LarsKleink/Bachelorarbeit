@@ -1,0 +1,8 @@
+[algorithms]
+count_a = 2
+0 = "CHIMP"
+1 = "ELF"
+
+[datasets]
+count_d = 1
+1 = "stock-UK"
