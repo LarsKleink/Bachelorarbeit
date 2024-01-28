@@ -1,8 +1,14 @@
 [algorithms]
 count_a = 2
-0 = "CHIMP"
-1 = "ELF"
+0 = "btrblocks"
+1 = "elf"
 
-[datasets]
-count_d = 1
-1 = "stock-UK"
+# base options are: buff, csv and bin
+[datasets] # dataset names assume the name of the directory where the dateset is in
+count_d = 3
+0 = "BUFF-dataset"
+0_base = "buff"
+1 = "RANDOM"
+1_base = "bin"
+2 = "t502861995_c1"
+2_base = "csv"

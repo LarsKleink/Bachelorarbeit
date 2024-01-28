@@ -56,30 +56,45 @@ def convert_csv_to_binary(source_location: str, target_location: str, delimiter)
     write_binary(numbers, target_location)
 
 
-def one_to_two(file_location):
-    with open(file_location, newline='') as csvfile:
-        string_with_breaks = csvfile.read()
-        target_file_lines = string_with_breaks.count('\n')/1000 + 1
-        string_with_commas = {}
-        for x in range(target_file_lines):
-            for y in range(1000):
-                string_with_commas[x] = string_with_breaks.replace('\n', ',')
-        with open(file_location.removesuffix('.csv'), 'w', newline='') as file:
-            writer = csv.writer(file)
-            writer.writerow(string_with_commas)
+def create_file_location(file_location: str):
+    return "./Datasets/" + file_location + "/" + file_location
 
 
-def two_to_one(file_location):
-    with open(file_location, newline='') as file:
-        reader = csv.reader(file)
-        with open(file_location + '.csv', 'w', newline='') as csvfile:
-            writer = csv.writer(csvfile)
-            for row in reader:
-                for i in range(len(row)):
-                    writer.writerow([row[i]])
+# assumes the base directory of the dataset as the input
+def base_buff(file_location):
+    fl = create_file_location(file_location)
+    numbers = read_numbers(fl, ",")
+    write_numbers(numbers, fl + ".csv", 1)
+    write_binary(numbers, fl + ".double")
 
 
-file = './Datasets/t502861995_c0/t502861995_c0.csv'
-file2 = './Datasets/Btr_double1/DICTIONARY_8.double'
+def base_csv(file_location):
+    fl = create_file_location(file_location)
+    numbers = read_numbers(fl + ".csv", None)
+    write_numbers(numbers, fl, 1000)
+    write_binary(numbers, fl + ".double")
+
+
+def base_binary(file_location):
+    fl = create_file_location(file_location)
+    numbers = read_binary(fl + ".double")
+    write_numbers(numbers, fl + ".csv", 1)
+    write_numbers(numbers, fl, 1000)
+
+
+def create_other_datasets(file_location, base):
+    match base:
+        case "buff":
+            base_buff(file_location)
+        case "csv":
+            base_csv(file_location)
+        case "bin":
+            base_binary(file_location)
+        case _:
+            print("unknown base form")
+
+
+# file = './Datasets/BUFF-dataset/BUFF-dataset.csv'
+# file2 = './Datasets/DICTIONARY_8/DICTIONARY_8'
 # convert_dataset(file, file + '.csv', ',', 1)
-convert_csv_to_binary(file, file.removesuffix('.csv') + 'bin', None)
+# convert_csv_to_binary(file, file.removesuffix('.csv') + 'bin', None)
