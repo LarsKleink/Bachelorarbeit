@@ -1,14 +1,17 @@
 [algorithms]
-count_a = 2
+count_a = 3
 0 = "btrblocks"
 1 = "elf"
+2 = "buff"
 
 # base options are: buff, csv and bin
 [datasets] # dataset names assume the name of the directory where the dateset is in
-count_d = 3
-0 = "BUFF-dataset"
-0_base = "buff"
-1 = "RANDOM"
-1_base = "bin"
-2 = "t502861995_c1"
+count_d = 4
+0 = "t502861995_c0"
+0_base = "csv"
+1 = "t502861995_c1"
+1_base = "csv"
+2 = "t502861995_c2"
 2_base = "csv"
+3 = "t502861995_c3"
+3_base = "csv"

@@ -23,10 +23,5 @@ env/
 .idea/
 .vscode/
 
-
-Algorithms/BUFF/database/
-/Algorithms/BUFF/database/
-/Algorithms/BUFF/.idea/
-/Algorithms/ELF/target/
-/Algorithms/ELF/src/test/resources/
 /Datasets/
+/results
