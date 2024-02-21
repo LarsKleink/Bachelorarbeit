@@ -1,7 +1,5 @@
-import csv
 import struct
 from math import ceil
-import binascii
 
 
 def read_numbers(file_location: str, delimiter):
@@ -41,23 +39,8 @@ def write_binary(numbers: list[str], file_location: str):
             file.write(struct.pack('!d', float(numbers[step])))
 
 
-def convert_dataset(source_location: str, target_location: str, delimiter, per_line: int):
-    numbers = read_numbers(source_location, delimiter)
-    write_numbers(numbers, target_location, per_line)
-
-
-def convert_binary_to_csv(source_location: str, target_location: str, per_line: int):
-    numbers = read_binary(source_location)
-    write_numbers(numbers, target_location, per_line)
-
-
-def convert_csv_to_binary(source_location: str, target_location: str, delimiter):
-    numbers = read_numbers(source_location, delimiter)
-    write_binary(numbers, target_location)
-
-
 def create_file_location(file_location: str):
-    return "./Datasets/" + file_location + "/" + file_location
+    return "/home/lars/prj/Bachelorarbeit/Datasets/" + file_location + "/" + file_location
 
 
 # assumes the base directory of the dataset as the input
@@ -92,9 +75,3 @@ def create_other_datasets(file_location, base):
             base_binary(file_location)
         case _:
             print("unknown base form")
-
-
-# file = './Datasets/BUFF-dataset/BUFF-dataset.csv'
-# file2 = './Datasets/DICTIONARY_8/DICTIONARY_8'
-# convert_dataset(file, file + '.csv', ',', 1)
-# convert_csv_to_binary(file, file.removesuffix('.csv') + 'bin', None)
