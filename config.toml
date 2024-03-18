@@ -1,17 +1,58 @@
+execute = ["btrblocks","elf","chimp","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
+
 [algorithms]
-count_a = 3
-0 = "btrblocks"
-1 = "elf"
-2 = "buff"
+[algorithms.btrblocks]
+plugin = "execute_1.py"
+location = "~/prj/BtrBlocks/build/my_compression"
+file = ".double"
+
+[algorithms.elf]
+plugin = "execute_2.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.chimp]
+plugin = "execute_3.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.gorilla]
+plugin = "execute_4.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.xz]
+plugin = "execute_5.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.snappy]
+plugin = "execute_6.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.brotli]
+plugin = "execute_7.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.zstd]
+plugin = "execute_8.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.fpc]
+plugin = "execute_9.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
+[algorithms.buff]
+plugin = "execute_10.py"
+location = "~/prj/BUFF/database"
+file = ""
 
 # base options are: buff, csv and bin
 [datasets] # dataset names assume the name of the directory where the dateset is in
-count_d = 4
 0 = "t502861995_c0"
-0_base = "csv"
 1 = "t502861995_c1"
-1_base = "csv"
-2 = "t502861995_c2"
-2_base = "csv"
-3 = "t502861995_c3"
-3_base = "csv"
+

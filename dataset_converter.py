@@ -75,3 +75,27 @@ def create_other_datasets(file_location, base):
             base_binary(file_location)
         case _:
             print("unknown base form")
+
+
+def create_other_dataset(fl, base, target):
+    match base:
+        case "bin":
+            numbers = read_binary(fl + ".double")
+            if target == "buff":
+                write_numbers(numbers, fl + "", 1000)
+            elif target == "csv":
+                write_numbers(numbers, fl + ".csv", 1)
+        case "csv":
+            numbers = read_numbers(fl + ".csv", None)
+            if target == "buff":
+                write_numbers(numbers, fl + "", 1000)
+            elif target == "bin":
+                write_binary(numbers, fl + ".double")
+        case "buff":
+            numbers = read_numbers(fl, ",")
+            if target == "csv":
+                write_numbers(numbers, fl + ".csv", 1)
+            elif target == "bin":
+                write_binary(numbers, fl + ".double")
+        case _:
+            print("unknown base form")

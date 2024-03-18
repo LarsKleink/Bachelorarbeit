@@ -1,64 +1,137 @@
 # main file
+import importlib.util
+import secrets
+import string
+import sys
 import os.path
 import subprocess
+import time
 
 import toml
 
 import dataset_converter
 
-with open('config.toml', 'r') as f:
-    config = toml.load(f)
 
-# locations of the algorithms
-btrblocks_location = "~/prj/BtrBlocks/build/my_compression"  # compiled program
-elf_location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"  # jar location
-buff_location = "~/prj/BUFF/database"  # location of the database directory in BUFF
+def gensym(length=32, prefix="gensym_"):
+    """
+    generates a fairly unique symbol, used to make a module name,
+    used as a helper function for load_module
 
-result_list = [["Dataset", "Algorithm", "Compression Factor", "Compression Speed in μs", "Decompression Speed in μs"]]
+    :return: generated symbol
+    """
+    alphabet = string.ascii_uppercase + string.ascii_lowercase + string.digits
+    symbol = "".join([secrets.choice(alphabet) for i in range(length)])
 
-for x in range(config["datasets"]["count_d"]):
-    current_dataset = config["datasets"][str(x)]
-    fl = dataset_converter.create_file_location(current_dataset)
-    # convert datasets if it wasn't yet
-    dataset_variations = len([name for name in os.listdir("./Datasets/" + current_dataset)])
-    if dataset_variations == 1:
-        dataset_converter.create_other_datasets(current_dataset, config["datasets"][str(x) + "_base"])
-        print("successfully converted " + current_dataset)
+    return prefix + symbol
+
+
+def load_module(source, module_name=None):
+    """
+    reads file source and loads it as a module
+
+    :param source: file to load
+    :param module_name: name of module to register in sys.modules
+    :return: loaded module
+    """
+
+    if module_name is None:
+        module_name = gensym()
+
+    spec = importlib.util.spec_from_file_location(module_name, source)
+    module = importlib.util.module_from_spec(spec)
+    sys.modules[module_name] = module
+    spec.loader.exec_module(module)
+
+    return module
+
+
+def check_existing_datasets(directory: str):
+    path = "./Datasets/" + directory + "/" + directory
+    if os.path.isfile(path + ".double") and os.path.isfile(path + ".csv") and os.path.isfile(path):
+        return 1        # binary, csv and buff exist
+    elif os.path.isfile(path + ".double") and os.path.isfile(path + ".csv") and not os.path.isfile(path):
+        return 2        # binary and csv exist
+    elif os.path.isfile(path + ".double") and not os.path.isfile(path + ".csv") and os.path.isfile(path):
+        return 3        # binary and buff exist
+    elif os.path.isfile(path + ".double") and not os.path.isfile(path + ".csv") and not os.path.isfile(path):
+        return 4        # only binary exists
+    elif os.path.isfile(path + ".csv") and not os.path.isfile(path):
+        return 5        # only csv exists
+    elif os.path.isfile(path + ".csv") and os.path.isfile(path):
+        return 6        # csv and buff exist
     else:
-        print(current_dataset + " was already converted")
+        return 7        # only buff exists
 
-    for y in range(config["algorithms"]["count_a"]):
-        current_algorithm = config["algorithms"][str(y)].lower()
 
-        # put together the execute string
-        execute_string = ""
-        match current_algorithm:
-            case "btrblocks":
-                execute_string += btrblocks_location + " " + fl + ".double"
-            case "elf" | "chimp" | "gorilla" | "xz" | "snappy" | "brotli" | "zstd" | "fpc":
-                execute_string += "java -jar " + elf_location + " " + current_algorithm + " " + fl + ".csv"
-            case "buff":
-                execute_string += ("cargo +nightly run --manifest-path " + buff_location +
-                                   "/Cargo.toml --release  --package buff --bin comp_profiler " +
-                                   fl + " buff 10000 1.1509")
+if __name__ == "__main__":
+    with open('config.toml', 'r') as f:
+        config = toml.load(f)
 
-        # execute the algorithm
-        subprocess.run(execute_string, shell=True, capture_output=True)
+    result_list = [["Dataset", "Algorithm", "Compression Factor", "Compression Speed in μs", "Decompression Speed in μs", "Execution time in seconds"]]
 
-        # collect the stats from the execution
-        stats = [current_dataset, current_algorithm,
-                 dataset_converter.read_numbers("./results/" + current_algorithm + ".csv", ",")]
-        result_list.append(stats)
+    algorithms = config["algorithms"]
+    execute_list = config["execute"]
+    datasets = config["datasets"]
 
-        print("successfully executed " + current_algorithm + " with dataset " + current_dataset + "\n")
+    for x in range(len(datasets)):
+        current_dataset = datasets[str(x)]
+        fl = dataset_converter.create_file_location(current_dataset)
 
-# write the stats to a result file
-with open("./results/results.csv", mode="w", encoding="utf-8") as file:
-    for stats in result_list:
-        for element in stats:
-            if isinstance(element, str):
-                file.write(element + "\t")
-            else:
-                for n in range(len(element)):
-                    file.write(element[n] + "\t")
-        file.write("\n")
+        # convert datasets if it wasn't yet
+        match check_existing_datasets(current_dataset):
+            case 1:         # binary, csv and buff exist
+                pass
+            case 2:         # binary and csv exist
+                dataset_converter.create_other_dataset(fl, "bin", "buff")
+                print("converted " + current_dataset + " to buff-version   2")
+            case 3:         # binary and buff exist
+                dataset_converter.create_other_dataset(fl, "bin", "csv")
+                print("converted " + current_dataset + " to csv-version    3")
+            case 4:         # only binary exists
+                dataset_converter.create_other_dataset(fl, "bin", "buff")
+                print("converted " + current_dataset + " to buff-version   4")
+                dataset_converter.create_other_dataset(fl, "bin", "csv")
+                print("converted " + current_dataset + " to csv-version    4")
+            case 5:         # only csv exists
+                dataset_converter.create_other_dataset(fl, "csv", "buff")
+                print("converted " + current_dataset + " to buff-version   5")
+                dataset_converter.create_other_dataset(fl, "csv", "bin")
+                print("converted " + current_dataset + " to binary-version    5")
+            case 6:         # csv and buff exist
+                dataset_converter.create_other_dataset(fl, "csv", "bin")
+                print("converted " + current_dataset + " to binary-version     6")
+            case 7:         # only buff exists
+                dataset_converter.create_other_dataset(fl, "buff", "bin")
+                print("converted " + current_dataset + " to binary-version     7")
+                dataset_converter.create_other_dataset(fl, "buff", "csv")
+                print("converted " + current_dataset + " to csv-version     7")
+
+        for exec in execute_list:
+            algorithm = algorithms[exec]
+            module = load_module("plugins/" + algorithm.get("plugin"))
+
+            execute_string = module.create_execute_string(fl, algorithm.get("location"), algorithm.get("file"))
+            # execute the algorithm
+            start = time.time()
+            subprocess.run(execute_string, shell=True, capture_output=True)
+            end = time.time()
+            length = (end - start) * 1
+    
+            # collect the stats from the execution
+            stats = [current_dataset, exec,
+                     dataset_converter.read_numbers("./results/" + exec + ".csv", ","), str(length)]
+            result_list.append(stats)
+    
+            print("successfully executed " + exec + " with dataset " + current_dataset + "\n")
+    
+    # write the stats to a result file
+    with open("./results/results.csv", mode="w", encoding="utf-8") as file:
+        for stats in result_list:
+            for element in stats:
+                if isinstance(element, str):
+                    file.write(element + ",")
+                else:
+                    for n in range(len(element)):
+                        file.write(element[n] + ",")
+            file.write("\n")
+
