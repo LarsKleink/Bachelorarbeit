@@ -1,5 +1,7 @@
 execute = ["btrblocks","elf","chimp","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
 
+new_result_file = true
+
 [algorithms]
 [algorithms.btrblocks]
 plugin = "execute_1.py"

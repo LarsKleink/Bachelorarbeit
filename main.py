@@ -83,28 +83,28 @@ if __name__ == "__main__":
                 pass
             case 2:         # binary and csv exist
                 dataset_converter.create_other_dataset(fl, "bin", "buff")
-                print("converted " + current_dataset + " to buff-version   2")
+                print("converted " + current_dataset + " to buff-version")
             case 3:         # binary and buff exist
                 dataset_converter.create_other_dataset(fl, "bin", "csv")
-                print("converted " + current_dataset + " to csv-version    3")
+                print("converted " + current_dataset + " to csv-version")
             case 4:         # only binary exists
                 dataset_converter.create_other_dataset(fl, "bin", "buff")
-                print("converted " + current_dataset + " to buff-version   4")
+                print("converted " + current_dataset + " to buff-version")
                 dataset_converter.create_other_dataset(fl, "bin", "csv")
-                print("converted " + current_dataset + " to csv-version    4")
+                print("converted " + current_dataset + " to csv-version")
             case 5:         # only csv exists
                 dataset_converter.create_other_dataset(fl, "csv", "buff")
-                print("converted " + current_dataset + " to buff-version   5")
+                print("converted " + current_dataset + " to buff-version")
                 dataset_converter.create_other_dataset(fl, "csv", "bin")
-                print("converted " + current_dataset + " to binary-version    5")
+                print("converted " + current_dataset + " to binary-version")
             case 6:         # csv and buff exist
                 dataset_converter.create_other_dataset(fl, "csv", "bin")
-                print("converted " + current_dataset + " to binary-version     6")
+                print("converted " + current_dataset + " to binary-version")
             case 7:         # only buff exists
                 dataset_converter.create_other_dataset(fl, "buff", "bin")
-                print("converted " + current_dataset + " to binary-version     7")
+                print("converted " + current_dataset + " to binary-version")
                 dataset_converter.create_other_dataset(fl, "buff", "csv")
-                print("converted " + current_dataset + " to csv-version     7")
+                print("converted " + current_dataset + " to csv-version")
 
         for exec in execute_list:
             algorithm = algorithms[exec]
@@ -119,11 +119,17 @@ if __name__ == "__main__":
     
             # collect the stats from the execution
             stats = [current_dataset, exec,
-                     dataset_converter.read_numbers("./results/" + exec + ".csv", ","), str(length)]
+                     dataset_converter.read_numbers("./results/algorithms/" + exec + ".csv", ","), str(length)]
             result_list.append(stats)
     
             print("successfully executed " + exec + " with dataset " + current_dataset + "\n")
-    
+
+    result_file_path = ""
+    if config["new_result_file"] is True:
+        result_file_path = "./results/results_" + time.strftime("%Y%m%d-%H%M%S") + ".csv"
+    else:
+        result_file_path = "./results/results.csv"
+
     # write the stats to a result file
     with open("./results/results.csv", mode="w", encoding="utf-8") as file:
         for stats in result_list:
