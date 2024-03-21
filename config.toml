@@ -1,4 +1,4 @@
-execute = ["btrblocks","elf","chimp","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
+execute = ["btrblocks","elf","chimp","chimp128","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
 
 new_result_file = true
 
@@ -53,8 +53,11 @@ plugin = "execute_10.py"
 location = "~/prj/BUFF/database"
 file = ""
 
+[algorithms.chimp128]
+plugin = "execute_11.py"
+location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
+file = ".csv"
+
 # base options are: buff, csv and bin
 [datasets] # dataset names assume the name of the directory where the dateset is in
-0 = "t502861995_c0"
-1 = "t502861995_c1"
-
+0 = "OneValue"
