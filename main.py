@@ -6,6 +6,7 @@ import time
 import toml
 
 import dataset_converter
+import utils
 
 
 if __name__ == "__main__":
@@ -18,13 +19,14 @@ if __name__ == "__main__":
     algorithms = config["algorithms"]
     execute_list = config["execute"]
     datasets = config["datasets"]
+    project_location = utils.get_project_root()
 
     for x in range(len(datasets)):
         current_dataset = datasets[str(x)]
-        fl = dataset_converter.create_file_location(current_dataset)
+        fl = utils.create_dataset_location(project_location, current_dataset)
 
         # convert dataset if it wasn't yet
-        match dataset_converter.check_existing_datasets(current_dataset):
+        match utils.check_existing_datasets(current_dataset):
             case 1:         # binary, csv and buff exist
                 pass
             case 2:         # binary and csv exist
@@ -56,7 +58,7 @@ if __name__ == "__main__":
             algorithm = algorithms[exec]
 
             # dynamically import the needed plugin
-            module = dataset_converter.load_module("plugins/" + algorithm.get("plugin"))
+            module = utils.load_module("plugins/" + algorithm.get("plugin"))
 
             # create the execute string with the correct plugin
             execute_string = module.create_execute_string(fl, algorithm.get("location"), algorithm.get("file"))
