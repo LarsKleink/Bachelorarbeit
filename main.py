@@ -2,6 +2,7 @@
 import os.path
 import subprocess
 import time
+import sqlite3
 
 import toml
 
@@ -16,52 +17,57 @@ if __name__ == "__main__":
     result_list = [["Dataset", "Algorithm", "Compression Factor", "Compression Speed in μs",
                     "Decompression Speed in μs", "Execution time in seconds"]]
 
-    algorithms = config["algorithms"]
+    algorithms_location = config["algorithms_location"]
     execute_list = config["execute"]
     datasets = config["datasets"]
     project_location = utils.get_project_root()
 
-    for x in range(len(datasets)):
-        current_dataset = datasets[str(x)]
-        fl = utils.create_dataset_location(project_location, current_dataset)
+    # connect to the algorithms database
+    con = sqlite3.connect(algorithms_location)
+    cur = con.cursor()
+
+    for dataset in datasets:
+        fl = utils.create_dataset_location(project_location, dataset)
 
         # convert dataset if it wasn't yet
-        match utils.check_existing_datasets(current_dataset):
+        match utils.check_existing_datasets(dataset):
             case 1:         # binary, csv and buff exist
                 pass
             case 2:         # binary and csv exist
                 dataset_converter.create_other_dataset(fl, "bin", "buff")
-                print("converted " + current_dataset + " to buff-version\n")
+                print("converted " + dataset + " to buff-version\n")
             case 3:         # binary and buff exist
                 dataset_converter.create_other_dataset(fl, "bin", "csv")
-                print("converted " + current_dataset + " to csv-version\n")
+                print("converted " + dataset + " to csv-version\n")
             case 4:         # only binary exists
                 dataset_converter.create_other_dataset(fl, "bin", "buff")
-                print("converted " + current_dataset + " to buff-version")
+                print("converted " + dataset + " to buff-version")
                 dataset_converter.create_other_dataset(fl, "bin", "csv")
-                print("converted " + current_dataset + " to csv-version\n")
+                print("converted " + dataset + " to csv-version\n")
             case 5:         # only csv exists
                 dataset_converter.create_other_dataset(fl, "csv", "buff")
-                print("converted " + current_dataset + " to buff-version")
+                print("converted " + dataset + " to buff-version")
                 dataset_converter.create_other_dataset(fl, "csv", "bin")
-                print("converted " + current_dataset + " to binary-version\n")
+                print("converted " + dataset + " to binary-version\n")
             case 6:         # csv and buff exist
                 dataset_converter.create_other_dataset(fl, "csv", "bin")
-                print("converted " + current_dataset + " to binary-version\n")
+                print("converted " + dataset + " to binary-version\n")
             case 7:         # only buff exists
                 dataset_converter.create_other_dataset(fl, "buff", "bin")
-                print("converted " + current_dataset + " to binary-version")
+                print("converted " + dataset + " to binary-version")
                 dataset_converter.create_other_dataset(fl, "buff", "csv")
-                print("converted " + current_dataset + " to csv-version\n")
+                print("converted " + dataset + " to csv-version\n")
 
         for exec in execute_list:
-            algorithm = algorithms[exec]
+            # get plugin, location and filetype from database
+            query_result = cur.execute("SELECT plugin, location, file FROM algorithms WHERE name='" + exec + "'")
+            exec_plugin, exec_location, exec_file = query_result.fetchone()
 
             # dynamically import the needed plugin
-            module = utils.load_module("plugins/" + algorithm.get("plugin"))
+            module = utils.load_module("plugins/" + exec_plugin)
 
             # create the execute string with the correct plugin
-            execute_string = module.create_execute_string(fl, algorithm.get("location"), algorithm.get("file"))
+            execute_string = module.create_execute_string(fl, exec_location, exec_file)
             # execute the algorithm
             start = time.time()
             subprocess.run(execute_string, shell=True, capture_output=True)
@@ -69,14 +75,18 @@ if __name__ == "__main__":
     
             # collect the stats from the execution if the execution was successful
             if time.time() - os.path.getmtime("./results/algorithms/" + exec + ".csv") < 2:
-                stats = [current_dataset, exec, dataset_converter.read_numbers(
+                stats = [dataset, exec, dataset_converter.read_numbers(
                     "./results/algorithms/" + exec + ".csv", ","), str(length)]
-                print("successfully executed " + exec + " with dataset " + current_dataset + "\n")
+                print("successfully executed " + exec + " with dataset " + dataset + "\n")
                 result_list.append(stats)
             else:
-                stats = [current_dataset, exec, "error"]
-                print("error at execution of " + exec + " with dataset " + current_dataset + "\n")
+                stats = [dataset, exec, "error"]
+                print("error at execution of " + exec + " with dataset " + dataset + "\n")
                 result_list.append(stats)
+
+    # close connection to the database
+    con.commit()
+    con.close()
 
     # check if a new file should be created or to write in the default file
     if config["new_result_file"]:

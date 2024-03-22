@@ -2,62 +2,7 @@ execute = ["btrblocks","elf","chimp","chimp128","gorilla","xz","snappy","brotli"
 
 new_result_file = true
 
-[algorithms]
-[algorithms.btrblocks]
-plugin = "execute_1.py"
-location = "~/prj/BtrBlocks/build/my_compression"
-file = ".double"
+algorithms_location = "algorithms.db"
 
-[algorithms.elf]
-plugin = "execute_2.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.chimp]
-plugin = "execute_3.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.gorilla]
-plugin = "execute_4.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.xz]
-plugin = "execute_5.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.snappy]
-plugin = "execute_6.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.brotli]
-plugin = "execute_7.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.zstd]
-plugin = "execute_8.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.fpc]
-plugin = "execute_9.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-[algorithms.buff]
-plugin = "execute_10.py"
-location = "~/prj/BUFF/database"
-file = ""
-
-[algorithms.chimp128]
-plugin = "execute_11.py"
-location = "~/prj/ELF/out/artifacts/start_compress_jar/start-compress.jar"
-file = ".csv"
-
-# base options are: buff, csv and bin
-[datasets] # dataset names assume the name of the directory where the dateset is in
-0 = "OneValue"
+# dataset names have to be the same as the directory above (i.e. .../light/light.csv)
+datasets = ["light"]
