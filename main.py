@@ -1,25 +1,64 @@
-# main file
+#!/usr/bin/env python
+
 import os.path
 import subprocess
 import time
 import sqlite3
+import argparse
 
 import toml
 
 import dataset_converter
 import utils
 
+NEW_RESULT_FILE_DEFAULT = True
 
 if __name__ == "__main__":
-    with open('config.toml', 'r') as f:
-        config = toml.load(f)
+
+    parser = argparse.ArgumentParser()
+
+    parser.add_argument("-c", "--config", help="path to a toml-file")
+    parser.add_argument("-a", "--algorithms", help="ALGORITHM_DATABASE: path to sqlite database")
+    parser.add_argument("-e", "--execute_list", nargs="+", help="list of algorithms that should be tested")
+    parser.add_argument("-d", "--datasets", nargs="+", help="list of datasets to test")
+    parser.add_argument("-r", "--results_file", help="save results in default file or create a new one",
+                        default=NEW_RESULT_FILE_DEFAULT)
+
+    args = parser.parse_args()
+
+    if args.config is None and args.algorithms is None and args.datasets is None:
+        args.config = "config.toml"
+
+    if args.algorithms is not None and args.datasets is not None:
+        algorithms_location = args.algorithms
+
+        # connect to the algorithms database
+        connection = sqlite3.connect(algorithms_location)
+        cursor = connection.cursor()
+
+        full_algorithm_list = []
+        for row in cursor.execute("SELECT name FROM algorithms"):
+            full_algorithm_list.append(row[0])
+
+        connection.close()
+
+        if args.execute_list:
+            execute_list = args.execute_list
+        else:
+            execute_list = full_algorithm_list
+        datasets = args.datasets
+        new_result_file = args.results_file
+    else:
+        with open(args.config, 'r') as f:
+            config = toml.load(f)
+        algorithms_location = config["algorithms_location"]
+        execute_list = config["execute_list"]
+        datasets = config["datasets"]
+        new_result_file = config.get("new_result_file", NEW_RESULT_FILE_DEFAULT)
 
     result_list = [["Dataset", "Algorithm", "Compression Factor", "Compression Speed in μs",
                     "Decompression Speed in μs", "Execution time in seconds"]]
 
-    algorithms_location = config["algorithms_location"]
-    execute_list = config["execute"]
-    datasets = config["datasets"]
     project_location = utils.get_project_root()
 
     # connect to the algorithms database
@@ -89,7 +128,7 @@ if __name__ == "__main__":
     con.close()
 
     # check if a new file should be created or to write in the default file
-    if config["new_result_file"]:
+    if new_result_file:
         result_file_path = "./results/results_" + time.strftime("%Y%m%d-%H%M%S").strip() + ".csv"
     else:
         result_file_path = "./results/results.csv"

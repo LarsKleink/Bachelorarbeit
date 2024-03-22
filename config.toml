@@ -1,4 +1,4 @@
-execute = ["btrblocks","elf","chimp","chimp128","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
+execute_list = ["btrblocks","elf","chimp","chimp128","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
 
 new_result_file = true
 
