@@ -1,8 +1,9 @@
-execute_list = ["btrblocks","elf","chimp","chimp128","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
+#execute_list = ["btrblocks","elf","chimp","chimp128","gorilla","xz","snappy","brotli","zstd","fpc","buff"]
+execute_list = ["gorilla", "chimp128"]
 
 new_result_file = true
 
 algorithms_location = "algorithms.db"
 
 # dataset names have to be the same as the directory above (i.e. .../light/light.csv)
-datasets = ["light"]
+datasets = ["humidity", "voltage"]

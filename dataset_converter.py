@@ -28,7 +28,7 @@ def read_binary(file_location: str):
         print(len(file_content))
         for i in range(int(len(file_content)/16)):
             number_hex = file_content[i*16:(i+1)*16]
-            numbers.append(str(struct.unpack('!d', bytes.fromhex(number_hex))[0]))
+            numbers.append(str(struct.unpack('<d', bytes.fromhex(number_hex))[0]))
         return numbers
 
 
@@ -36,7 +36,7 @@ def write_binary(numbers: list[str], file_location: str):
     steps = len(numbers)
     with open(file_location, mode="wb") as file:
         for step in range(steps):
-            file.write(struct.pack('!d', float(numbers[step])))
+            file.write(struct.pack('<d', float(numbers[step])))
 
 
 def create_other_dataset(fl, base, target):

@@ -17,44 +17,80 @@ if __name__ == "__main__":
 
     parser = argparse.ArgumentParser()
 
-    parser.add_argument("-c", "--config", help="path to a toml-file")
+    parser.add_argument("-c", "--config", help="path to a toml-file", default="config.toml")
     parser.add_argument("-a", "--algorithms", help="ALGORITHM_DATABASE: path to sqlite database")
     parser.add_argument("-e", "--execute_list", nargs="+", help="list of algorithms that should be tested")
     parser.add_argument("-d", "--datasets", nargs="+", help="list of datasets to test")
     parser.add_argument("-r", "--results_file", help="save results in default file or create a new one",
-                        default=NEW_RESULT_FILE_DEFAULT)
+                        action=argparse.BooleanOptionalAction)
+    parser.add_argument("-l", "--all", help="option if all algorithms should be executed",
+                        default=False, action=argparse.BooleanOptionalAction)
 
     args = parser.parse_args()
 
-    if args.config is None and args.algorithms is None and args.datasets is None:
-        args.config = "config.toml"
+    with open(args.config, 'r') as f:
+        config = toml.load(f)
+    algorithms_location = config["algorithms_location"]
+    execute_list = config.get("execute_list")
+    datasets = config["datasets"]
+    new_result_file = config.get("new_result_file", NEW_RESULT_FILE_DEFAULT)
 
-    if args.algorithms is not None and args.datasets is not None:
+    if args.algorithms is not None:
         algorithms_location = args.algorithms
 
-        # connect to the algorithms database
-        connection = sqlite3.connect(algorithms_location)
-        cursor = connection.cursor()
+    # connect to the algorithms database
+    connection = sqlite3.connect(algorithms_location)
+    cursor = connection.cursor()
 
-        full_algorithm_list = []
-        for row in cursor.execute("SELECT name FROM algorithms"):
-            full_algorithm_list.append(row[0])
+    full_algorithm_list = []
+    for row in cursor.execute("SELECT name FROM algorithms"):
+        full_algorithm_list.append(row[0])
 
-        connection.close()
+    connection.close()
 
-        if args.execute_list:
-            execute_list = args.execute_list
-        else:
-            execute_list = full_algorithm_list
+    if args.all is True:
+        execute_list = full_algorithm_list
+        print(1)
+    elif args.execute_list is not None:
+        execute_list = args.execute_list
+        print(2)
+    elif execute_list is None:
+        execute_list = full_algorithm_list
+        print(3)
+
+    if args.datasets is not None:
         datasets = args.datasets
+
+    if args.results_file is not None:
         new_result_file = args.results_file
-    else:
-        with open(args.config, 'r') as f:
-            config = toml.load(f)
-        algorithms_location = config["algorithms_location"]
-        execute_list = config["execute_list"]
-        datasets = config["datasets"]
-        new_result_file = config.get("new_result_file", NEW_RESULT_FILE_DEFAULT)
+
+    #
+    # if args.algorithms is not None and args.datasets is not None:
+    #     algorithms_location = args.algorithms
+    #
+    #     # connect to the algorithms database
+    #     connection = sqlite3.connect(algorithms_location)
+    #     cursor = connection.cursor()
+    #
+    #     full_algorithm_list = []
+    #     for row in cursor.execute("SELECT name FROM algorithms"):
+    #         full_algorithm_list.append(row[0])
+    #
+    #     connection.close()
+    #
+    #     if args.execute_list:
+    #         execute_list = args.execute_list
+    #     else:
+    #         execute_list = full_algorithm_list
+    #     datasets = args.datasets
+    #     new_result_file = args.results_file
+    # else:
+    #     with open(args.config, 'r') as f:
+    #         config = toml.load(f)
+    #     algorithms_location = config["algorithms_location"]
+    #     execute_list = config["execute_list"]
+    #     datasets = config["datasets"]
+    #     new_result_file = config.get("new_result_file", NEW_RESULT_FILE_DEFAULT)
 
     result_list = [["Dataset", "Algorithm", "Compression Factor", "Compression Speed in μs",
                     "Decompression Speed in μs", "Execution time in seconds"]]
@@ -66,6 +102,9 @@ if __name__ == "__main__":
     cur = con.cursor()
 
     for dataset in datasets:
+
+        start_time_dataset = time.time()
+
         fl = utils.create_dataset_location(project_location, dataset)
 
         # convert dataset if it wasn't yet
@@ -113,7 +152,7 @@ if __name__ == "__main__":
             length = time.time() - start
     
             # collect the stats from the execution if the execution was successful
-            if time.time() - os.path.getmtime("./results/algorithms/" + exec + ".csv") < 2:
+            if os.path.getmtime("./results/algorithms/" + exec + ".csv") > start_time_dataset:
                 stats = [dataset, exec, dataset_converter.read_numbers(
                     "./results/algorithms/" + exec + ".csv", ","), str(length)]
                 print("successfully executed " + exec + " with dataset " + dataset + "\n")
